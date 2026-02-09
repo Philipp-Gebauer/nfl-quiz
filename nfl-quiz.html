@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NFL Personality Quiz (32 Teams)</title>
+  <style>
+    :root { --bg:#0b0f19; --card:#121a2a; --muted:#9fb0d0; --text:#eaf1ff; --accent:#7aa2ff; --accent2:#7dffb2; --warn:#ffcf5c; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial; background: radial-gradient(1200px 800px at 20% 10%, #1a2a55 0%, var(--bg) 60%); color: var(--text); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 40px; }
+    header { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    h1 { margin: 0; font-size: 22px; letter-spacing: .2px; }
+    .sub { margin: 6px 0 0; color: var(--muted); line-height: 1.4; }
+    .pill { display:inline-flex; gap:8px; align-items:center; padding: 8px 10px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); border-radius: 999px; color: var(--muted); font-size: 12px; }
+    .grid { display:grid; gap: 14px; margin-top: 18px; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); border: 1px solid rgba(255,255,255,.10);
+            border-radius: 16px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    .qhead { display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+    .qtitle { margin:0; font-size: 16px; }
+    .qmeta { color: var(--muted); font-size: 12px; }
+    .choices { display:grid; gap: 10px; margin-top: 12px; }
+    .choice {
+      display:flex; gap:12px; align-items:flex-start;
+      padding: 12px 12px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      cursor:pointer; user-select:none;
+      transition: transform .05s ease, border-color .15s ease, background .15s ease;
+    }
+    .choice:hover { border-color: rgba(122,162,255,.55); background: rgba(122,162,255,.10); }
+    .choice:active { transform: translateY(1px); }
+    .dot { width: 22px; height: 22px; border-radius: 999px; display:grid; place-items:center;
+      border: 1px solid rgba(255,255,255,.18); color: var(--muted); font-weight: 700; font-size: 12px; flex: 0 0 auto; margin-top: 1px;
+      background: rgba(255,255,255,.04);
+    }
+    .choice.selected { border-color: rgba(125,255,178,.70); background: rgba(125,255,178,.10); }
+    .choice.selected .dot { border-color: rgba(125,255,178,.70); color: var(--accent2); }
+    .ctas { display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
+    button {
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 650;
+    }
+    button:hover { border-color: rgba(122,162,255,.55); background: rgba(122,162,255,.12); }
+    button.primary { background: rgba(122,162,255,.18); border-color: rgba(122,162,255,.55); }
+    button.primary:hover { background: rgba(122,162,255,.28); }
+    button.good { background: rgba(125,255,178,.14); border-color: rgba(125,255,178,.50); }
+    button.good:hover { background: rgba(125,255,178,.22); }
+    button.warn { background: rgba(255,207,92,.14); border-color: rgba(255,207,92,.50); }
+    button.warn:hover { background: rgba(255,207,92,.22); }
+    .bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.10); overflow:hidden; }
+    .bar > div { height: 100%; width: 0%; background: linear-gradient(90deg, rgba(122,162,255,.85), rgba(125,255,178,.85)); transition: width .25s ease; }
+    .resultTitle { margin: 0; font-size: 18px; }
+    .team { font-size: 26px; font-weight: 850; margin: 8px 0 6px; letter-spacing: .2px; }
+    .tagline { color: var(--muted); margin: 0; line-height: 1.45; }
+    .mini { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.45; }
+    .hide { display:none; }
+    .toast { margin-top: 10px; color: var(--accent2); font-size: 12px; }
+    .footer { margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    a { color: var(--accent); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>🏈 NFL Personality Quiz (32 Teams)</h1>
+        <p class="sub">10 Fragen, je 4 Antworten. Am Ende bekommst du <b>genau ein</b> NFL-Team. Optional kannst du dir einen Share-Link kopieren.</p>
+      </div>
+      <div class="pill" id="statusPill">Fortschritt: <b id="progressText">0/10</b></div>
+    </header>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="qhead">
+        <div class="qmeta">Fortschrittsbalken</div>
+        <div class="qmeta" id="progressPct">0%</div>
+      </div>
+      <div class="bar" aria-label="Progress"><div id="progressBar"></div></div>
+      <div class="mini">Tipp: Du kannst später jederzeit „Share-Link kopieren“ drücken – die Antworten werden in der URL gespeichert.</div>
+    </div>
+
+    <div id="quiz" class="grid"></div>
+
+    <div id="result" class="card hide" aria-live="polite">
+      <h2 class="resultTitle">Dein Ergebnis</h2>
+      <div class="team" id="teamName">—</div>
+      <p class="tagline" id="teamLine">—</p>
+
+      <div class="ctas">
+        <button class="good" id="copyLinkBtn">Share-Link kopieren</button>
+        <button class="primary" id="restartBtn">Neu starten</button>
+        <button class="warn" id="randomBtn" title="Nur zum Spaß: Zufallsantworten setzen">Randomize</button>
+      </div>
+      <div class="toast hide" id="toast">Link kopiert ✅</div>
+
+      <div class="footer">
+        Hinweis: Das ist ein humorvoller Persönlichkeitstest, kein sportliches Ranking. Wenn du das Quiz teilen willst, hoste diese Datei z. B. auf GitHub Pages / Uni-Webspace.
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  // 32 NFL team names (alphabetical by city-ish; not a ranking)
+  const TEAMS = [
+    { name: "Arizona Cardinals", line: "Du bist schnell im Kopf, manchmal unruhig – aber immer für eine Überraschung gut." },
+    { name: "Atlanta Falcons", line: "Große Ideen, große Emotionen. Wenn’s klickt, wird’s spektakulär." },
+    { name: "Baltimore Ravens", line: "Taktisch, fokussiert, ein bisschen „evil genius“ – du liebst Kontrolle." },
+    { name: "Buffalo Bills", line: "Loyal, laut, All-in. Du gehst für dein Team durchs Feuer (und durch Schnee)." },
+    { name: "Carolina Panthers", line: "Anpassungsfähig, neugierig, auf dem Weg zur nächsten Evolutionsstufe." },
+    { name: "Chicago Bears", line: "Stoisch, hart im Nehmen, du bleibst deiner Linie treu – egal was kommt." },
+    { name: "Cincinnati Bengals", line: "Cool, selbstbewusst, Style mit Substanz. Du liebst den großen Moment." },
+    { name: "Cleveland Browns", line: "Bodenständig, ehrlich, manchmal stur – aber du gibst nicht auf." },
+    { name: "Dallas Cowboys", line: "Hoher Anspruch, große Bühne. Du willst es richtig machen – und sichtbar." },
+    { name: "Denver Broncos", line: "Weitblick, Freiheit, du magst Luft nach oben (und Abenteuer)." },
+    { name: "Detroit Lions", line: "Geduld + Herz. Du bleibst dran, bis’s klappt – und dann richtig." },
+    { name: "Green Bay Packers", line: "Tradition, Stabilität, Langfristdenken. Du bist der verlässliche Kern." },
+    { name: "Houston Texans", line: "Builder-Mentalität: ausprobieren, iterieren, wachsen. Du willst Substanz." },
+    { name: "Indianapolis Colts", line: "Pflichtbewusst, ordentlich, du liebst klare Rollen und saubere Abläufe." },
+    { name: "Jacksonville Jaguars", line: "Underdog-Energie, frischer Start, du bist für Überraschungen bekannt." },
+    { name: "Kansas City Chiefs", line: "Show + Selbstvertrauen. Du gehst Risiken ein, wenn’s sich lohnt." },
+    { name: "Las Vegas Raiders", line: "Rebellisch, direkt, ein bisschen Chaos – aber mit Kultfaktor." },
+    { name: "Los Angeles Chargers", line: "Viel Talent, gerne unkonventionell. Du machst dein eigenes Ding." },
+    { name: "Los Angeles Rams", line: "Kreativ, mutig, design-bewusst. Du magst elegante Lösungen." },
+    { name: "Miami Dolphins", line: "Speed, Sonne, Flow. Du liebst Tempo und gute Vibes." },
+    { name: "Minnesota Vikings", line: "Strategisch, reflektiert, du denkst gern zwei Züge voraus." },
+    { name: "New England Patriots", line: "Disziplin und System. Du gewinnst nicht durch Glück, sondern durch Prozess." },
+    { name: "New Orleans Saints", line: "Gemeinschaft, Resilienz, du stehst wieder auf – immer." },
+    { name: "New York Giants", line: "Traditionsbewusst, stoisch, du bleibst ruhig, wenn’s laut wird." },
+    { name: "New York Jets", line: "Drama-Magnet mit Hoffnungsmotor. Du liebst Comebacks und Plot-Twists." },
+    { name: "Philadelphia Eagles", line: "Härte, Direktheit, Kampfgeist. Du willst’s nicht hübsch – du willst’s echt." },
+    { name: "Pittsburgh Steelers", line: "Mental stark, loyal, arbeitest dich durch. Haltung > Show." },
+    { name: "San Francisco 49ers", line: "Eleganz + Struktur. Du magst Tradition und taktische Tiefe." },
+    { name: "Seattle Seahawks", line: "Freiheitsgeist, Intuition, du denkst anders – und gehst deinen Weg." },
+    { name: "Tampa Bay Buccaneers", line: "Pragmatisch, opportunistisch, du nimmst das Momentum mit." },
+    { name: "Tennessee Titans", line: "Kontrolle, Physis, klare Rollen. Du willst Stabilität und Wucht." },
+    { name: "Washington Commanders", line: "Neustart-Mentalität. Du baust Identität durch Handeln." }
+  ];
+
+  // 10 questions, 4 answers (A-D). Each answer is digit 0..3.
+  const QUESTIONS = [
+    { q: "Wie triffst du wichtige Entscheidungen?", a: ["Mit Daten & Analyse", "Mit Mut & Bauchgefühl", "Kreativ und offen", "Mit Erfahrung & Stabilität"] },
+    { q: "Dein Arbeitsstil ist eher…", a: ["Systematisch", "Intensiv & emotional", "Flexibel & experimentell", "Konstant & zuverlässig"] },
+    { q: "Wenn du ein Play callen müsstest:", a: ["Sicherer Gameplan", "Deep shot – big play", "Trick play", "Run it. Immer wieder."] },
+    { q: "Was motiviert dich am meisten?", a: ["Meisterschaft durch Prozess", "Applaus & Momentum", "Freiheit & Neues", "Loyalität & Teamgefühl"] },
+    { q: "Dein Konfliktstil:", a: ["Diskutieren & klären", "Konfrontieren & pushen", "Umgehen & neu rahmen", "Aussitzen & liefern"] },
+    { q: "Worauf achtest du zuerst?", a: ["Struktur", "Wirkung", "Optionen", "Zuverlässigkeit"] },
+    { q: "Dein Sonntag klingt nach:", a: ["Plan + Meal prep", "Action + Leute", "Spontan raus", "Couch + Comfort food"] },
+    { q: "Welche Superkraft nimmst du?", a: ["Vorhersage", "Charisma", "Teleport", "Unerschütterlichkeit"] },
+    { q: "Was bringt dich auf die Palme?", a: ["Unordnung", "Langeweile", "Einschränkungen", "Unzuverlässigkeit"] },
+    { q: "Wie willst du wahrgenommen werden?", a: ["Kompetent", "Eindrucksvoll", "Unabhängig", "Verlässlich"] }
+  ];
+
+  // Build base-4 number from answers (10 digits -> 0..(4^10-1)), then map to 0..31 via a stable mixing step.
+  function computeTeamIndex(digits) {
+    // digits: array length N, each 0..3
+    // base-4 to integer (use BigInt)
+    let x = 0n;
+    for (let i = 0; i < digits.length; i++) {
+      x = x * 4n + BigInt(digits[i]);
+    }
+    // Mix (xorshift-ish) to spread patterns; still deterministic
+    let y = x ^ (x >> 7n) ^ (x >> 13n) ^ (x >> 21n);
+    // Ensure non-negative, then mod 32
+    let idx = Number(y & 31n); // faster than %32
+    return idx; // 0..31
+  }
+
+  function encodeAnswers(digits) {
+    // digits -> string of 0..3
+    return digits.map(String).join("");
+  }
+  function decodeAnswers(str) {
+    if (!str) return null;
+    if (!/^[0-3]+$/.test(str)) return null;
+    return str.split("").map(ch => Number(ch));
+  }
+
+  const quizEl = document.getElementById("quiz");
+  const resultEl = document.getElementById("result");
+  const teamNameEl = document.getElementById("teamName");
+  const teamLineEl = document.getElementById("teamLine");
+  const progressTextEl = document.getElementById("progressText");
+  const progressPctEl = document.getElementById("progressPct");
+  const progressBarEl = document.getElementById("progressBar");
+  const toastEl = document.getElementById("toast");
+
+  const state = {
+    answers: Array(QUESTIONS.length).fill(null) // each is 0..3
+  };
+
+  function updateProgress() {
+    const done = state.answers.filter(v => v !== null).length;
+    const total = QUESTIONS.length;
+    progressTextEl.textContent = `${done}/${total}`;
+    const pct = Math.round((done / total) * 100);
+    progressPctEl.textContent = `${pct}%`;
+    progressBarEl.style.width = `${pct}%`;
+  }
+
+  function showResultIfReady() {
+    const done = state.answers.every(v => v !== null);
+    if (!done) {
+      resultEl.classList.add("hide");
+      return;
+    }
+    const idx = computeTeamIndex(state.answers);
+    const team = TEAMS[idx];
+    teamNameEl.textContent = team.name;
+    teamLineEl.textContent = team.line;
+    resultEl.classList.remove("hide");
+
+    // Update URL with answers
+    const url = new URL(window.location.href);
+    url.searchParams.set("a", encodeAnswers(state.answers));
+    window.history.replaceState({}, "", url.toString());
+  }
+
+  function renderQuiz() {
+    quizEl.innerHTML = "";
+    QUESTIONS.forEach((qq, qi) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      const head = document.createElement("div");
+      head.className = "qhead";
+      head.innerHTML = `<h3 class="qtitle">${qi + 1}. ${qq.q}</h3><div class="qmeta">Wähle A–D</div>`;
+      card.appendChild(head);
+
+      const choices = document.createElement("div");
+      choices.className = "choices";
+
+      const labels = ["A", "B", "C", "D"];
+      qq.a.forEach((txt, ai) => {
+        const row = document.createElement("div");
+        row.className = "choice";
+        row.setAttribute("role", "button");
+        row.setAttribute("tabindex", "0");
+        row.dataset.qi = qi;
+        row.dataset.ai = ai;
+
+        row.innerHTML = `<div class="dot">${labels[ai]}</div><div>${txt}</div>`;
+
+        const applySelected = () => {
+          state.answers[qi] = ai;
+          // update selection visuals in this question
+          [...choices.children].forEach(ch => ch.classList.remove("selected"));
+          row.classList.add("selected");
+          updateProgress();
+          showResultIfReady();
+        };
+
+        row.addEventListener("click", applySelected);
+        row.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); applySelected(); }
+        });
+
+        choices.appendChild(row);
+      });
+
+      // Pre-select if already answered
+      if (state.answers[qi] !== null) {
+        const sel = choices.children[state.answers[qi]];
+        if (sel) sel.classList.add("selected");
+      }
+
+      card.appendChild(choices);
+      quizEl.appendChild(card);
+    });
+  }
+
+  function restart() {
+    state.answers = Array(QUESTIONS.length).fill(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("a");
+    window.history.replaceState({}, "", url.toString());
+    toastEl.classList.add("hide");
+    updateProgress();
+    renderQuiz();
+    showResultIfReady();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function randomize() {
+    state.answers = state.answers.map(() => Math.floor(Math.random() * 4));
+    toastEl.classList.add("hide");
+    updateProgress();
+    renderQuiz();
+    showResultIfReady();
+    document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function copyShareLink() {
+    const done = state.answers.every(v => v !== null);
+    if (!done) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("a", encodeAnswers(state.answers));
+    const text = url.toString();
+    try {
+      await navigator.clipboard.writeText(text);
+      toastEl.textContent = "Link kopiert ✅";
+      toastEl.classList.remove("hide");
+      setTimeout(() => toastEl.classList.add("hide"), 1600);
+    } catch {
+      // Fallback: show link in prompt
+      window.prompt("Kopiere den Link:", text);
+    }
+  }
+
+  // Wire buttons
+  document.getElementById("restartBtn").addEventListener("click", restart);
+  document.getElementById("randomBtn").addEventListener("click", randomize);
+  document.getElementById("copyLinkBtn").addEventListener("click", copyShareLink);
+
+  // Load from URL if present
+  (function initFromURL() {
+    const url = new URL(window.location.href);
+    const a = url.searchParams.get("a");
+    const digits = decodeAnswers(a);
+    if (digits && digits.length === QUESTIONS.length) {
+      state.answers = digits;
+    }
+  })();
+
+  // First render
+  updateProgress();
+  renderQuiz();
+  showResultIfReady();
+})();
+</script>
+</body>
+</html>
